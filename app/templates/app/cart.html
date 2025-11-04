@@ -1,0 +1,182 @@
+{% extends "app/base.html" %}
+
+{% block title %}
+RC Stores - Cart
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <h2 class="text-center text-white fw-semibold mb-4">
+    <i class="fas fa-shopping-cart me-2"></i>Your Shopping Cart
+  </h2>
+
+  <div id="cart-container" class="row g-4">
+    <!-- Cart items will be rendered here -->
+  </div>
+
+  <p class="grand-total text-center fw-bold fs-5 text-white mt-4" id="grand-total"></p>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="toast-notification"></div>
+
+<style>
+  .cart-item-card {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+    height: 100%;
+  }
+
+  .cart-item-card:hover {
+    transform: translateY(-5px);
+  }
+
+  .cart-item-image {
+    width: 100%;
+    height: 200px;
+    object-fit: contain;
+    background: #f8f9fa;
+    padding: 1rem;
+  }
+
+  .cart-item-body {
+    padding: 1.2rem;
+  }
+
+  .remove-btn {
+    width: 100%;
+  }
+
+  .buy-btn {
+    width: 100%;
+  }
+
+  .empty-cart-message {
+    text-align: center;
+    color: #666;
+    padding: 2rem;
+  }
+
+  .toast-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #28a745;
+    color: white;
+    padding: 14px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    display: none;
+    z-index: 1050;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.3s, fadeOut 0.3s 2.2s;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-20px); }
+  }
+
+  /* Mobile adjustment */
+  @media (max-width: 576px) {
+    .cart-item-image {
+      height: 150px;
+    }
+    .cart-item-title {
+      font-size: 1rem;
+    }
+  }
+</style>
+
+<script>
+  let cart = JSON.parse(localStorage.getItem("cart")) || [];
+  const container = document.getElementById("cart-container");
+  const grandTotalDisplay = document.getElementById("grand-total");
+
+  function updateCartCount() {
+    const cartCountElements = document.querySelectorAll('.cart-count');
+    const totalItems = cart.reduce((total, item) => total + item.qty, 0);
+    cartCountElements.forEach(element => {
+      element.textContent = totalItems;
+      element.style.display = totalItems > 0 ? 'inline-block' : 'none';
+    });
+  }
+
+  function renderCart() {
+    container.innerHTML = '';
+    let grandTotal = 0;
+
+    if (cart.length === 0) {
+      container.innerHTML = `
+        <div class="empty-cart-message col-12">
+          <i class="fas fa-shopping-cart" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
+          <h4>Your cart is empty</h4>
+          <p>Start shopping to add items to your cart</p>
+        </div>`;
+      grandTotalDisplay.innerText = '';
+      updateCartCount();
+      return;
+    }
+
+    cart.forEach((item, index) => {
+      grandTotal += item.total;
+
+      const card = document.createElement("div");
+      card.className = "col-12 col-sm-6 col-md-4 col-lg-3";
+      card.innerHTML = `
+        <div class="cart-item-card d-flex flex-column">
+          <img src="${item.image}" class="cart-item-image" alt="${item.name}">
+          <div class="cart-item-body flex-grow-1 d-flex flex-column">
+            <h5 class="cart-item-title mb-2">${item.name}</h5>
+            <p class="mb-1 text-secondary">Price: ₹${item.price}</p>
+            <p class="mb-1 text-secondary">Quantity: ${item.qty}</p>
+            <p class="fw-bold text-dark mb-2">Total: ₹${item.total}</p>
+            <div class="mt-auto">
+              <button class="btn btn-danger mb-2 remove-btn" onclick="removeItem(${index})">
+                <i class="fas fa-trash-alt"></i> Remove
+              </button>
+              <button class="btn btn-success buy-btn" onclick="buyNow('${item.name}', ${item.qty}, ${item.total})">
+                <i class="fas fa-shopping-bag"></i> Buy Now
+              </button>
+            </div>
+          </div>
+        </div>`;
+      container.appendChild(card);
+    });
+
+    grandTotalDisplay.innerText = "Grand Total: ₹" + grandTotal;
+    updateCartCount();
+  }
+
+  function showToast(message, isError = false) {
+    const toast = document.getElementById("toast");
+    toast.innerText = message;
+    toast.style.backgroundColor = isError ? '#dc3545' : '#28a745';
+    toast.style.display = "block";
+    setTimeout(() => { toast.style.display = "none"; }, 2500);
+  }
+
+  function removeItem(index) {
+    const removed = cart[index].name;
+    cart.splice(index, 1);
+    localStorage.setItem("cart", JSON.stringify(cart));
+    renderCart();
+    showToast(`"${removed}" removed from cart.`, true);
+  }
+
+  function buyNow(name, qty, total) {
+    window.location.href = `/checkout/?name=${encodeURIComponent(name)}&qty=${qty}&total=${total}`;
+  }
+
+  document.addEventListener('DOMContentLoaded', renderCart);
+</script>
+
+{% endblock %}

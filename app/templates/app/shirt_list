@@ -1,0 +1,586 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  {% if is_search %}
+    Search Results for "{{ search_query }}" | YourStore
+  {% else %}
+    Shop Premium Shirts | YourStore
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="shirt-list-container">
+  <!-- Search and Filter Section -->
+  <div class="search-filter-section">
+    <form method="GET" action="{% url 'app:shirt_list' %}" class="search-form">
+      <div class="search-input-group">
+        <input type="text" name="query" value="{{ search_query|default:'' }}" 
+               placeholder="Search shirts (try 'otto', 'under 1000')" class="search-input">
+        <button type="submit" class="search-button">
+          <i class="fas fa-search"></i> Search
+        </button>
+      </div>
+
+      <div class="filter-options">
+        <div class="filter-group">
+          <label>Category:</label>
+          <select name="category" onchange="this.form.submit()">
+            <option value="">All Categories</option>
+            <option value="formal" {% if request.GET.category == 'formal' %}selected{% endif %}>Formal</option>
+            <option value="casual" {% if request.GET.category == 'casual' %}selected{% endif %}>Casual</option>
+            <option value="polo" {% if request.GET.category == 'polo' %}selected{% endif %}>Polo</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Price Range:</label>
+          <div class="price-range">
+            <input type="number" name="min_price" placeholder="Min" 
+                   value="{{ request.GET.min_price|default:'' }}">
+            <span>-</span>
+            <input type="number" name="max_price" placeholder="Max" 
+                   value="{{ request.GET.max_price|default:'' }}">
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <button type="submit" class="apply-filters">Apply Filters</button>
+          {% if request.GET.query or request.GET.category or request.GET.min_price or request.GET.max_price %}
+            <a href="{% url 'app:shirt_list' %}" class="clear-filters">Clear All</a>
+          {% endif %}
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Active Filters Display -->
+  {% if request.GET.query or request.GET.category or request.GET.min_price or request.GET.max_price %}
+  <div class="active-filters">
+    {% if request.GET.query %}
+      <span class="filter-tag">Search: "{{ request.GET.query }}"</span>
+    {% endif %}
+    {% if request.GET.category %}
+      <span class="filter-tag">Category: {{ request.GET.category|title }}</span>
+    {% endif %}
+    {% if request.GET.min_price %}
+      <span class="filter-tag">Min: ₹{{ request.GET.min_price }}</span>
+    {% endif %}
+    {% if request.GET.max_price %}
+      <span class="filter-tag">Max: ₹{{ request.GET.max_price }}</span>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- Results Header -->
+  <div class="results-header">
+    <h2>
+      {% if is_search %}
+        Search Results for "{{ search_query }}"
+      {% else %}
+        Our Shirt Collection
+      {% endif %}
+    </h2>
+    <div class="sort-options">
+      <span>Sort By:</span>
+      <select onchange="window.location.href=addParam('sort', this.value)">
+        <option value="-created_at" {% if request.GET.sort == '-created_at' %}selected{% endif %}>Newest</option>
+        <option value="price" {% if request.GET.sort == 'price' %}selected{% endif %}>Price: Low to High</option>
+        <option value="-price" {% if request.GET.sort == '-price' %}selected{% endif %}>Price: High to Low</option>
+        <option value="-rating" {% if request.GET.sort == '-rating' %}selected{% endif %}>Top Rated</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Shirt Grid -->
+  <div class="shirt-grid">
+    {% for shirt in shirts %}
+    <div class="shirt-card">
+      <div class="image-container">
+        <a href="{% url 'app:shirt_detail' shirt.id %}">
+          <img src="{{ shirt.image.url }}" alt="{{ shirt.model_name }}" loading="lazy">
+          {% if shirt.discount_percentage %}
+            <span class="discount-badge">-{{ shirt.discount_percentage }}%</span>
+          {% endif %}
+        </a>
+        <button class="wishlist-btn" data-shirt-id="{{ shirt.id }}">
+          <i class="far fa-heart"></i>
+        </button>
+      </div>
+      
+      <div class="shirt-info">
+        <h3><a href="{% url 'app:shirt_detail' shirt.id %}">{{ shirt.model_name }}</a></h3>
+        <div class="brand-category">
+          <span class="brand">{{ shirt.brand }}</span>
+          <span class="category">{{ shirt.get_category_display }}</span>
+        </div>
+        
+        <div class="price-section">
+          <span class="current-price">₹{{ shirt.price }}</span>
+          {% if shirt.original_price %}
+            <span class="original-price">₹{{ shirt.original_price }}</span>
+          {% endif %}
+        </div>
+        
+        <div class="rating">
+          <div class="stars">
+            {% with ''|center:shirt.average_rating as range %}
+              {% for _ in range %}★{% endfor %}
+            {% endwith %}
+            <span class="count">({{ shirt.review_count }})</span>
+          </div>
+        </div>
+        
+        <button class="add-to-cart" data-shirt-id="{{ shirt.id }}">
+          <i class="fas fa-shopping-cart"></i> Add to Cart
+        </button>
+      </div>
+    </div>
+    {% empty %}
+    <div class="no-results">
+      <i class="fas fa-search"></i>
+      <h3>No shirts found matching your criteria</h3>
+      <p>Try adjusting your search or filters</p>
+      <a href="{% url 'app:shirt_list' %}" class="btn">View All Shirts</a>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Pagination -->
+  {% if shirts.paginator.num_pages > 1 %}
+  <div class="pagination">
+    {% if shirts.has_previous %}
+      <a href="?{% param_replace page=1 %}">&laquo; First</a>
+      <a href="?{% param_replace page=shirts.previous_page_number %}">Previous</a>
+    {% endif %}
+
+    {% for num in shirts.paginator.page_range %}
+      {% if shirts.number == num %}
+        <span class="current">{{ num }}</span>
+      {% elif num > shirts.number|add:'-3' and num < shirts.number|add:'3' %}
+        <a href="?{% param_replace page=num %}">{{ num }}</a>
+      {% endif %}
+    {% endfor %}
+
+    {% if shirts.has_next %}
+      <a href="?{% param_replace page=shirts.next_page_number %}">Next</a>
+      <a href="?{% param_replace page=shirts.paginator.num_pages %}">Last &raquo;</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+<style>
+  /* Main Container */
+  .shirt-list-container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 15px;
+  }
+
+  /* Search and Filter Section */
+  .search-filter-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+
+  .search-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .search-input-group {
+    display: flex;
+    position: relative;
+  }
+
+  .search-input {
+    flex: 1;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+
+  .search-button {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 7px 15px;
+    cursor: pointer;
+  }
+
+  .filter-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .filter-group label {
+    font-weight: 500;
+  }
+
+  .price-range {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .price-range input {
+    width: 80px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+
+  .apply-filters {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .clear-filters {
+    color: #dc3545;
+    text-decoration: none;
+    margin-left: 10px;
+  }
+
+  /* Active Filters */
+  .active-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .filter-tag {
+    background: #e9ecef;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 14px;
+  }
+
+  /* Results Header */
+  .results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .sort-options {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .sort-options select {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+  }
+
+  /* Shirt Grid */
+  .shirt-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
+    margin-bottom: 30px;
+  }
+
+  .shirt-card {
+    border: 1px solid #eee;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+
+  .shirt-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+
+  .image-container {
+    position: relative;
+    height: 300px;
+    overflow: hidden;
+  }
+
+  .image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+  }
+
+  .shirt-card:hover .image-container img {
+    transform: scale(1.05);
+  }
+
+  .discount-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #dc3545;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+  }
+
+  .wishlist-btn {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: white;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .shirt-card:hover .wishlist-btn {
+    opacity: 1;
+  }
+
+  .shirt-info {
+    padding: 15px;
+  }
+
+  .shirt-info h3 {
+    margin: 0 0 5px 0;
+    font-size: 16px;
+  }
+
+  .shirt-info h3 a {
+    color: #333;
+    text-decoration: none;
+  }
+
+  .brand-category {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: 14px;
+  }
+
+  .brand {
+    font-weight: 500;
+  }
+
+  .category {
+    color: #6c757d;
+  }
+
+  .price-section {
+    margin-bottom: 10px;
+  }
+
+  .current-price {
+    font-weight: bold;
+    font-size: 18px;
+    color: #dc3545;
+  }
+
+  .original-price {
+    text-decoration: line-through;
+    color: #6c757d;
+    margin-left: 5px;
+    font-size: 14px;
+  }
+
+  .rating {
+    margin-bottom: 15px;
+  }
+
+  .stars {
+    color: #ffc107;
+  }
+
+  .count {
+    color: #6c757d;
+    font-size: 13px;
+  }
+
+  .add-to-cart {
+    width: 100%;
+    padding: 10px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+
+  .add-to-cart:hover {
+    background: #0056b3;
+  }
+
+  /* No Results */
+  .no-results {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 0;
+  }
+
+  .no-results i {
+    font-size: 50px;
+    color: #6c757d;
+    margin-bottom: 20px;
+  }
+
+  .no-results h3 {
+    color: #343a40;
+    margin-bottom: 10px;
+  }
+
+  .no-results .btn {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+  }
+
+  /* Pagination */
+  .pagination {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin: 30px 0;
+  }
+
+  .pagination a, .pagination span {
+    padding: 8px 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-decoration: none;
+    color: #007bff;
+  }
+
+  .pagination .current {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .filter-options {
+      flex-direction: column;
+    }
+    
+    .filter-group {
+      width: 100%;
+    }
+    
+    .price-range {
+      width: 100%;
+    }
+    
+    .price-range input {
+      flex: 1;
+    }
+    
+    .results-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 15px;
+    }
+    
+    .shirt-grid {
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 15px;
+    }
+  }
+</style>
+
+<script>
+  // Function to add/update URL parameters
+  function addParam(key, value) {
+    const url = new URL(window.location.href);
+    url.searchParams.set(key, value);
+    return url.toString();
+  }
+
+  // Function to preserve existing query parameters when paginating
+  function paramReplace(params) {
+    const currentParams = new URLSearchParams(window.location.search);
+    
+    for (const [key, value] of Object.entries(params)) {
+      if (value === null || value === undefined) {
+        currentParams.delete(key);
+      } else {
+        currentParams.set(key, value);
+      }
+    }
+    
+    return currentParams.toString();
+  }
+
+  // Add to cart functionality
+  document.querySelectorAll('.add-to-cart').forEach(button => {
+    button.addEventListener('click', function() {
+      const shirtId = this.getAttribute('data-shirt-id');
+      
+      // Add to cart logic here
+      console.log('Added shirt', shirtId, 'to cart');
+      
+      // Show success message
+      alert('Item added to cart!');
+    });
+  });
+
+  // Wishlist functionality
+  document.querySelectorAll('.wishlist-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      const shirtId = this.getAttribute('data-shirt-id');
+      
+      // Toggle wishlist icon
+      const icon = this.querySelector('i');
+      if (icon.classList.contains('far')) {
+        icon.classList.remove('far');
+        icon.classList.add('fas');
+        icon.style.color = '#dc3545';
+      } else {
+        icon.classList.remove('fas');
+        icon.classList.add('far');
+        icon.style.color = '';
+      }
+      
+      // Wishlist logic here
+      console.log('Toggled wishlist for shirt', shirtId);
+    });
+  });
+
+  // Sort functionality
+  document.querySelector('.sort-options select').addEventListener('change', function() {
+    window.location.href = addParam('sort', this.value);
+  });
+</script>
+{% endblock %}

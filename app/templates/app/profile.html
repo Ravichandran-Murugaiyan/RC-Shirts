@@ -1,0 +1,406 @@
+{% extends "app/base.html" %}
+{%load static%}
+
+{% block title %}
+My Profile
+{% endblock %}
+
+{% block content %}
+<style>
+    .profile-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background-color: #252525;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0, 255, 200, 0.1);
+        border: 1px solid var(--primary-color);
+    }
+
+    .profile-header {
+        color: var(--primary-color);
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        border-bottom: 2px solid var(--primary-color);
+        padding-bottom: 1rem;
+    }
+
+    .profile-section {
+        margin-bottom: 2.5rem;
+    }
+
+    .profile-card {
+        background-color: #333;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid var(--primary-color);
+    }
+
+    .profile-field {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding: 0.8rem 0;
+        border-bottom: 1px solid #444;
+    }
+
+    .profile-field:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .field-label {
+        color: var(--primary-color);
+        font-weight: 500;
+        min-width: 120px;
+    }
+
+    .field-value {
+        color: var(--light-color);
+        flex-grow: 1;
+        padding: 0 1rem;
+    }
+
+    .edit-btn {
+        background-color: transparent;
+        color: var(--primary-color);
+        border: 1px solid var(--primary-color);
+        padding: 5px 15px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 0.9rem;
+    }
+
+    .edit-btn:hover {
+        background-color: rgba(0, 255, 200, 0.1);
+    }
+
+    .save-btn {
+        background-color: var(--primary-color);
+        color: #1c1c1c;
+        border: none;
+        padding: 5px 15px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 0.9rem;
+        font-weight: bold;
+    }
+
+    .save-btn:hover {
+        background-color: #00e6b8;
+    }
+
+    .edit-field {
+        background-color: #444;
+        border: 1px solid var(--primary-color);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 5px;
+        width: 100%;
+    }
+
+    .order-card {
+        background-color: #333;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid var(--accent-color);
+        transition: all 0.3s;
+    }
+
+    .order-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .order-title {
+        color: var(--accent-color);
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+    }
+
+    .order-field {
+        display: flex;
+        margin-bottom: 0.5rem;
+    }
+
+    .order-label {
+        color: var(--primary-color);
+        min-width: 120px;
+        font-weight: 500;
+    }
+
+    .order-value {
+        color: var(--light-color);
+    }
+
+    .no-orders {
+        color: var(--light-color);
+        text-align: center;
+        padding: 2rem;
+        font-size: 1.1rem;
+    }
+
+    .profile-image {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--primary-color);
+        margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .profile-field {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .field-label {
+            margin-bottom: 0.5rem;
+        }
+        
+        .edit-btn {
+            margin-top: 0.5rem;
+            align-self: flex-end;
+        }
+    }
+</style>
+
+<div class="profile-container">
+    <!-- Profile Header -->
+    <h2 class="profile-header">
+        <i class="fas fa-user-circle"></i> 👤 My Profile
+    </h2>
+
+    <!-- Profile Image -->
+    <div style="text-align: center;">
+        <img src="{% if user.profile.image %}{{ user.profile.image.url }}{% else %}{% static 'assets/default pro.png' %}{% endif %}" 
+             class="profile-image" 
+             alt="Profile Picture"
+             id="profile-picture">
+        <br>
+        <button class="edit-btn" onclick="document.getElementById('profile-upload').click()">
+            <i class="fas fa-camera"></i> Change Photo
+        </button>
+        <input type="file" id="profile-upload" style="display: none;" accept="image/*">
+    </div>
+
+    <!-- Profile Information -->
+    <div class="profile-section">
+        <h3><i class="fas fa-info-circle"></i> Personal Information</h3>
+        <div class="profile-card">
+            <div class="profile-field">
+                <span class="field-label">Username:</span>
+                <span class="field-value" id="username-value">{{ user.username }}</span>
+                <button class="edit-btn" onclick="enableEdit('username')">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+            </div>
+            
+            <div class="profile-field">
+                <span class="field-label">Email:</span>
+                <span class="field-value" id="email-value">{{ user.email }}</span>
+                <button class="edit-btn" onclick="enableEdit('email')">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+            </div>
+            
+            <div class="profile-field">
+                <span class="field-label">Phone:</span>
+                <span class="field-value" id="phone-value">
+                    {% if user.phone_number %}{{ user.phone_number }}{% else %}Not provided{% endif %}
+                </span>
+                <button class="edit-btn" onclick="enableEdit('phone')">
+                    <i class="fas fa-edit"></i> {% if user.phone_number %}Edit{% else %}Add{% endif %}
+                </button>
+            </div>
+            
+            <div class="profile-field">
+                <span class="field-label">Address:</span>
+                <span class="field-value" id="address-value">
+                    {% if user.address %}{{ user.address }}{% else %}Not provided{% endif %}
+                </span>
+                <button class="edit-btn" onclick="enableEdit('address')">
+                    <i class="fas fa-edit"></i> {% if user.address %}Edit{% else %}Add{% endif %}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order History -->
+    <div class="profile-section">
+        <h3><i class="fas fa-history"></i> Order History</h3>
+        {% if orders %}
+            {% for order in orders %}
+                <div class="order-card">
+                    <div class="order-title">
+                        Order #{{ order.id }} - {{ order.created_at|date:"M d, Y" }}
+                    </div>
+                    <div class="order-field">
+                        <span class="order-label">Product:</span>
+                        <span class="order-value">{{ order.product_name }}</span>
+                    </div>
+                    <div class="order-field">
+                        <span class="order-label">Quantity:</span>
+                        <span class="order-value">{{ order.quantity }}</span>
+                    </div>
+                    <div class="order-field">
+                        <span class="order-label">Total:</span>
+                        <span class="order-value">₹{{ order.total_price }}</span>
+                    </div>
+                    <div class="order-field">
+                        <span class="order-label">Shipped To:</span>
+                        <span class="order-value">
+                            {{ order.address }}, {{ order.pincode }}, {{ order.country }}
+                        </span>
+                    </div>
+                    <div class="order-field">
+                        <span class="order-label">Contact:</span>
+                        <span class="order-value">{{ order.mobile }}</span>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-orders">
+                <i class="fas fa-shopping-cart"></i><br>
+                You have not placed any orders yet.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    function enableEdit(field) {
+        const valueElement = document.getElementById(`${field}-value`);
+        const currentValue = valueElement.textContent.trim();
+        const inputType = field === 'email' ? 'email' : field === 'phone' ? 'tel' : 'text';
+        
+        // Create input field
+        const input = document.createElement('input');
+        input.type = inputType;
+        input.className = 'edit-field';
+        input.value = currentValue === 'Not provided' ? '' : currentValue;
+        
+        // Replace text with input
+        valueElement.textContent = '';
+        valueElement.appendChild(input);
+        input.focus();
+        
+        // Create save button
+        const saveBtn = document.createElement('button');
+        saveBtn.className = 'save-btn';
+        saveBtn.innerHTML = '<i class="fas fa-check"></i> Save';
+        
+        // Replace edit button with save button
+        const editBtn = valueElement.nextElementSibling;
+        editBtn.replaceWith(saveBtn);
+        
+        // Save functionality
+        saveBtn.onclick = function() {
+            const newValue = input.value.trim();
+            if (newValue) {
+                valueElement.textContent = newValue;
+                
+                // Here you would typically make an AJAX call to save the data
+                // Example:
+                /*
+                fetch('/update-profile/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        field: field,
+                        value: newValue
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showSuccessMessage('Profile updated successfully!');
+                    }
+                });
+                */
+                
+                showSuccessMessage(`${field.charAt(0).toUpperCase() + field.slice(1)} updated successfully!`);
+            } else {
+                valueElement.textContent = currentValue;
+            }
+            
+            // Restore edit button
+            saveBtn.replaceWith(editBtn);
+        };
+        
+        // Handle Enter key
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                saveBtn.click();
+            }
+        });
+    }
+    
+    function showSuccessMessage(message) {
+        // Create a temporary success message
+        const toast = document.createElement('div');
+        toast.style.position = 'fixed';
+        toast.style.bottom = '20px';
+        toast.style.right = '20px';
+        toast.style.backgroundColor = '#4CAF50';
+        toast.style.color = 'white';
+        toast.style.padding = '15px 25px';
+        toast.style.borderRadius = '5px';
+        toast.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+        toast.style.zIndex = '1000';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 500);
+        }, 3000);
+    }
+    
+    // Profile picture upload
+    document.getElementById('profile-upload').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                document.getElementById('profile-picture').src = event.target.result;
+                
+                // Here you would typically upload the image to your server
+                /*
+                const formData = new FormData();
+                formData.append('profile_image', file);
+                
+                fetch('/upload-profile-image/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showSuccessMessage('Profile picture updated!');
+                    }
+                });
+                */
+                
+                showSuccessMessage('Profile picture updated!');
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+{% endblock %}

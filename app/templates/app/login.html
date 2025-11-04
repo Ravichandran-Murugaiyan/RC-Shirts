@@ -1,0 +1,165 @@
+
+{%extends "app/base.html"%}
+
+
+{%block title%}
+RC Stores -login
+{%endblock%}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    .login-container {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: calc(100vh - 120px);
+        padding: 20px;
+    }
+    
+    .login-card {
+        width: 100%;
+        max-width: 420px;
+        padding: 40px;
+        background: #0f2e2c; /* Matching dark teal background */
+        border-radius: 16px;
+        box-shadow: 
+            0 12px 24px rgba(0, 0, 0, 0.3),
+            0 6px 12px rgba(0, 0, 0, 0.2);
+        text-align: center;
+        border: 1px solid rgba(72, 207, 173, 0.2);
+    }
+    
+    .login-title {
+        color: #48CFAD; /* Matching emerald accent */
+        margin-bottom: 30px;
+        font-weight: 700;
+        font-size: 26px;
+        letter-spacing: -0.5px;
+    }
+    
+    .input-group {
+        position: relative;
+        margin-bottom: 22px;
+    }
+    
+    .input-group i {
+        position: absolute;
+        left: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #48CFAD;
+        font-size: 16px;
+    }
+    
+    .login-input {
+        width: 100%;
+        padding: 14px 14px 14px 46px;
+        border: 1px solid #1a4341;
+        border-radius: 10px;
+        font-size: 15px;
+        background: #1a4341; /* Matching darker teal input background */
+        color: #e0f2f1;
+        transition: all 0.3s;
+    }
+    
+    .login-input:focus {
+        border-color: #48CFAD;
+        box-shadow: 0 0 0 3px rgba(72, 207, 173, 0.2);
+        outline: none;
+    }
+    
+    .login-input::placeholder {
+        color: #5d8b89;
+    }
+    
+    .login-btn {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(135deg, #48CFAD, #3BAFDA);
+        color: #0f2e2c;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-top: 10px;
+        box-shadow: 0 4px 15px rgba(59, 175, 218, 0.3);
+    }
+    
+    .login-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(59, 175, 218, 0.4);
+    }
+    
+    .login-footer {
+        margin-top: 25px;
+        color: #5d8b89;
+        font-size: 14px;
+    }
+    
+    .login-link {
+        color: #48CFAD;
+        text-decoration: none;
+        font-weight: 600;
+        margin-left: 6px;
+        transition: all 0.2s;
+    }
+    
+    .login-link:hover {
+        text-decoration: underline;
+        color: #3BAFDA;
+    }
+    
+    .error-message {
+        color: #ff6b6b;
+        background: rgba(255, 107, 107, 0.1);
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 25px;
+        font-size: 14px;
+        border-left: 3px solid #ff6b6b;
+    }
+</style>
+
+<div class="login-container">
+    <div class="login-card">
+        <h2 class="login-title">
+            <i class="fas fa-sign-in-alt" style="margin-right: 12px;"></i>Welcome Back
+        </h2>
+        
+        {% if error %}
+        <div class="error-message">
+            <i class="fas fa-exclamation-circle" style="margin-right: 8px;"></i>{{ error }}
+        </div>
+        {% endif %}
+        
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="input-group">
+                <i class="fas fa-user"></i>
+                <input type="text" name="username" placeholder="Username" class="login-input" required>
+            </div>
+            
+            <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" name="password" placeholder="Password" class="login-input" required>
+            </div>
+            
+            <button type="submit" class="login-btn">
+                <i class="fas fa-arrow-right-to-bracket" style="margin-right: 10px;"></i>Login
+            </button>
+        </form>
+        
+        <p class="login-footer">
+            Don't have an account?
+            <a href="{% url 'app:register' %}" class="login-link">
+                <i class="fas fa-user-plus"></i> Register
+            </a>
+        </p>
+    </div>
+</div>
+{% endblock %}

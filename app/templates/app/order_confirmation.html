@@ -1,0 +1,203 @@
+{% extends "app/base.html" %}
+{% block title %}RC Stores - Order Confirmation{% endblock %}
+
+{% block content %}
+<style>
+    .confirmation-container {
+        max-width: 600px;
+        margin: 3rem auto;
+        padding: 2rem;
+        background-color: #252525;
+        border-radius: 15px;
+        box-shadow: 0 0 30px rgba(0, 255, 200, 0.3);
+        border: 2px solid var(--primary-color);
+        text-align: center;
+        animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transform-origin: center;
+    }
+
+    @keyframes popIn {
+        0% { transform: scale(0.8); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    .confirmation-header {
+        color: var(--primary-color);
+        font-size: 2.2rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .confirmation-details {
+        background-color: #333;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        text-align: left;
+        border-left: 4px solid var(--primary-color);
+    }
+
+    .confirmation-details p {
+        margin: 0.8rem 0;
+        color: var(--light-color);
+        font-size: 1.1rem;
+    }
+
+    .confirmation-details strong {
+        color: var(--primary-color);
+        min-width: 140px;
+        display: inline-block;
+    }
+
+    .continue-btn {
+        display: inline-block;
+        background-color: var(--primary-color);
+        color: #1c1c1c;
+        padding: 12px 30px;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: bold;
+        margin-top: 1rem;
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+
+    .continue-btn:hover {
+        background-color: #00e6b8;
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 255, 200, 0.4);
+    }
+
+    .confetti {
+        position: fixed;
+        width: 10px;
+        height: 10px;
+        background-color: var(--primary-color);
+        opacity: 0;
+        z-index: 999;
+        animation: confetti 5s ease-in-out;
+    }
+
+    @keyframes confetti {
+        0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+    }
+
+    .checkmark {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: block;
+        stroke-width: 5;
+        stroke: var(--primary-color);
+        stroke-miterlimit: 10;
+        margin: 0 auto 1.5rem;
+        box-shadow: inset 0 0 0 rgba(0, 255, 200, 0.4);
+        animation: fillCheckmark 0.6s ease-in-out 0.6s forwards, 
+                   scaleCheckmark 0.3s ease-in-out 0.9s both;
+    }
+
+    @keyframes fillCheckmark {
+        100% { box-shadow: inset 0 0 0 40px rgba(0, 255, 200, 0.1); }
+    }
+
+    @keyframes scaleCheckmark {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+
+    .checkmark-circle {
+        stroke-dasharray: 166;
+        stroke-dashoffset: 166;
+        stroke-width: 5;
+        stroke-miterlimit: 10;
+        stroke: var(--primary-color);
+        fill: none;
+        animation: strokeCheckmark 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+    }
+
+    .checkmark-check {
+        transform-origin: 50% 50%;
+        stroke-dasharray: 48;
+        stroke-dashoffset: 48;
+        animation: strokeCheckmark 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.6s forwards;
+    }
+
+    @keyframes strokeCheckmark {
+        100% { stroke-dashoffset: 0; }
+    }
+</style>
+
+<audio id="confirmationSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3" preload="auto"></audio>
+
+<div class="confirmation-container">
+    <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+        <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+        <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+    </svg>
+    
+    <h2 class="confirmation-header">
+        <i class="fas fa-check-circle"></i> Order Confirmed!
+    </h2>
+    
+    <div class="confirmation-details">
+        <p><strong>Product:</strong> {{ order.product_name }}</p>
+        <p><strong>Quantity:</strong> {{ order.quantity }}</p>
+        <p><strong>Total:</strong> ₹{{ order.total_price }}</p>
+        <p><strong>Shipping Address:</strong> {{ order.address }}, {{ order.pincode }}</p>
+        <p><strong>Contact:</strong> {{ order.mobile }}</p>
+        <p><strong>Country:</strong> {{ order.country }}</p>
+        <div id="extra-details"></div>
+    </div>
+    
+    <a href="{% url 'app:products' %}" class="continue-btn">
+        <i class="fas fa-shopping-bag"></i> Continue Shopping
+    </a>
+</div>
+
+<script>
+    // Play confirmation sound
+    document.addEventListener('DOMContentLoaded', function() {
+        const sound = document.getElementById('confirmationSound');
+        sound.volume = 0.3;
+        sound.play();
+        
+        // Create confetti effect
+        createConfetti();
+        
+        // Display localStorage values
+        const payment = localStorage.getItem("payment_method") || "Cash on Delivery";
+        const shipping = localStorage.getItem("shipping_cost") || "50";
+        document.getElementById("extra-details").innerHTML = `
+            <p><strong>Payment Method:</strong> ${payment}</p>
+            <p><strong>Shipping Cost:</strong> ₹${shipping}</p>
+        `;
+    });
+
+    function createConfetti() {
+        const colors = ['#00ffc8', '#ff00ff', '#ffffff', '#00bfff'];
+        
+        for (let i = 0; i < 100; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * 100 + 'vw';
+            confetti.style.top = -10 + 'px';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.width = Math.random() * 10 + 5 + 'px';
+            confetti.style.height = Math.random() * 10 + 5 + 'px';
+            confetti.style.animationDuration = Math.random() * 3 + 2 + 's';
+            document.body.appendChild(confetti);
+            
+            // Remove confetti after animation
+            setTimeout(() => {
+                confetti.remove();
+            }, 5000);
+        }
+    }
+</script>
+{% endblock %}

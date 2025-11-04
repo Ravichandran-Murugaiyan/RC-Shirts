@@ -1,0 +1,254 @@
+{% extends "app/base.html" %}
+
+{% block title %}
+RC Stores - Search
+{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --primary-color: #00ffc3;
+        --light-color: #eeeeee;
+        --accent-color: #ff4081;
+    }
+
+    .search-page {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .search-form {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 2rem;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .search-input {
+        flex: 1;
+        padding: 12px 20px;
+        border-radius: 30px;
+        border: 2px solid var(--primary-color);
+        background-color: #2a2a2a;
+        color: white;
+        font-size: 1rem;
+        transition: all 0.3s;
+    }
+
+    .search-input:focus {
+        outline: none;
+        box-shadow: 0 0 10px var(--primary-color);
+        background-color: #333;
+    }
+
+    .search-btn {
+        background-color: var(--primary-color);
+        color: #1c1c1c;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 30px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .search-btn:hover {
+        background-color: #00e6b8;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 255, 200, 0.4);
+    }
+
+    .results-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 25px;
+        margin-top: 2rem;
+    }
+
+    .product-card {
+        background-color: #2a2a2a;
+        border-radius: 10px;
+        overflow: hidden;
+        transition: all 0.3s;
+        border-left: 4px solid var(--primary-color);
+        position: relative;
+    }
+
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 255, 200, 0.2);
+    }
+
+    .product-image {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+        border-bottom: 1px solid #444;
+    }
+
+    .product-info {
+        padding: 1.2rem;
+    }
+
+    .product-name {
+        color: var(--primary-color);
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+
+    .product-price {
+        color: var(--light-color);
+        font-weight: bold;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+    }
+
+    .product-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .view-btn, .add-to-cart-btn {
+        flex: 1;
+        padding: 8px 12px;
+        border-radius: 5px;
+        font-weight: 500;
+        text-align: center;
+        transition: all 0.2s;
+    }
+
+    .view-btn {
+        background-color: transparent;
+        color: var(--light-color);
+        border: 1px solid var(--light-color);
+        text-decoration: none;
+    }
+
+    .view-btn:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .add-to-cart-btn {
+        background-color: var(--primary-color);
+        color: #1c1c1c;
+        border: none;
+        cursor: pointer;
+    }
+
+    .add-to-cart-btn:hover {
+        background-color: #00e6b8;
+    }
+
+    .success-message {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background-color: #4CAF50;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 5px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+        display: none;
+        animation: slideIn 0.5s, fadeOut 0.5s 1.5s forwards;
+    }
+
+    @keyframes slideIn {
+        from { transform: translateX(100%); }
+        to { transform: translateX(0); }
+    }
+
+    @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+    }
+
+    .no-results {
+        text-align: center;
+        padding: 3rem;
+        color: var(--light-color);
+        font-size: 1.1rem;
+    }
+
+    .no-results i {
+        font-size: 2rem;
+        color: var(--accent-color);
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .results-grid {
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        }
+
+        .search-form {
+            flex-direction: column;
+        }
+
+        .search-btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="search-page">
+    <form method="get" action="{% url 'app:search' %}" class="search-form">
+        <input type="text" name="q" class="search-input" placeholder="Search t-shirts, hoodies..." value="{{ query }}">
+        <button type="submit" class="search-btn">Search</button>
+    </form>
+
+    <div id="success-message" class="success-message"></div>
+
+    {% if results %}
+        <div class="results-grid">
+            {% for shirt in results %}
+            <div class="product-card">
+    {% if shirt.image %}
+        <img src="{{ shirt.image.url }}" alt="{{ shirt.model_name }}" class="product-image">
+    {% endif %}
+    <div class="product-info">
+        <h3 class="product-name">{{ shirt.model_name }}</h3>
+        <p class="product-price">₹{{ shirt.price }}</p>
+        <div class="product-actions">
+            <a href="{% url 'app:details' shirt.id %}" class="view-btn">View</a>
+            {% if shirt.image %}
+                <button class="add-to-cart-btn" 
+                        onclick="addToCart('{{ shirt.id }}', '{{ shirt.model_name }}', {{ shirt.price }}, '{{ shirt.image.url }}')">
+                    Add to Cart
+                </button>
+            {% else %}
+                <button class="add-to-cart-btn" 
+                        onclick="addToCart('{{ shirt.id }}', '{{ shirt.model_name }}', {{ shirt.price }})">
+                    Add to Cart
+                </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+            {% endfor %}
+        </div>
+    {% elif query %}
+        <div class="no-results">
+            <i class="fas fa-search"></i>
+            <p>No results found for "{{ query }}".</p>
+            <p>Try different keywords or check out our <a href="{% url 'app:products' %}" style="color: var(--primary-color);">product catalog</a>.</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    function addToCart(id, name, price, imageUrl) {
+        const message = document.getElementById('success-message');
+        message.innerText = `${name} added to cart!`;
+        message.style.display = 'block';
+
+        setTimeout(() => {
+            message.style.display = 'none';
+        }, 2000);
+    }
+</script>
+{% endblock %}

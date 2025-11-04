@@ -1,0 +1,258 @@
+{% extends "app/base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    .hero-section {
+        background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                    url('{% static "assets/fashion-bg.jpg" %}');
+        background-size: cover;
+        background-position: center;
+        color: white;
+        padding: 100px 0;
+        text-align: center;
+        margin-bottom: 50px;
+    }
+
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: bold;
+        margin-bottom: 20px;
+        color: var(--primary-color);
+        text-shadow: 0 0 10px rgba(0, 255, 200, 0.5);
+    }
+
+    .hero-subtitle {
+        font-size: 1.5rem;
+        margin-bottom: 30px;
+    }
+
+    .btn-primary-custom {
+        background-color: var(--primary-color);
+        color: var(--background-color);
+        border: none;
+        padding: 12px 30px;
+        font-weight: bold;
+        border-radius: 30px;
+        transition: all 0.3s;
+        box-shadow: 0 0 15px rgba(0, 255, 200, 0.5);
+    }
+
+    .btn-primary-custom:hover {
+        background-color: var(--accent-color);
+        color: white;
+        box-shadow: 0 0 20px rgba(255, 0, 255, 0.7);
+        transform: translateY(-3px);
+    }
+
+    .section-title {
+        color: var(--primary-color);
+        text-align: center;
+        margin-bottom: 50px;
+        font-size: 2.5rem;
+        position: relative;
+    }
+
+    .section-title:after {
+        content: '';
+        display: block;
+        width: 100px;
+        height: 3px;
+        background: var(--primary-color);
+        margin: 15px auto;
+    }
+
+    .product-card {
+        background: #2a2a2a;
+        border-radius: 10px;
+        overflow: hidden;
+        transition: all 0.3s;
+        margin-bottom: 30px;
+        border: 1px solid #333;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .product-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0, 255, 200, 0.2);
+        border-color: var(--primary-color);
+    }
+
+    .product-img {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+    }
+
+    .product-body {
+        padding: 20px;
+    }
+
+    .product-title {
+        color: white;
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+    }
+
+    .product-description {
+        color: #aaa;
+        margin-bottom: 15px;
+        min-height: 60px;
+    }
+
+    .btn-buy {
+        background-color: var(--accent-color);
+        color: white;
+        width: 100%;
+        border: none;
+        padding: 10px;
+        font-weight: bold;
+        border-radius: 5px;
+        transition: all 0.3s;
+    }
+
+    .btn-buy:hover {
+        background-color: #d100d1;
+        box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+    }
+
+    .feature-box {
+        background: #2a2a2a;
+        padding: 30px;
+        border-radius: 10px;
+        text-align: center;
+        margin-bottom: 30px;
+        transition: all 0.3s;
+        border: 1px solid #333;
+    }
+
+    .feature-box:hover {
+        border-color: var(--primary-color);
+        box-shadow: 0 5px 15px rgba(0, 255, 200, 0.1);
+    }
+
+    .feature-icon {
+        font-size: 2.5rem;
+        color: var(--primary-color);
+        margin-bottom: 20px;
+    }
+
+    .feature-title {
+        color: white;
+        margin-bottom: 15px;
+    }
+
+    .feature-text {
+        color: #aaa;
+    }
+    .in{
+        color: white;
+        margin-bottom: 1.5rem !important;
+    }
+</style>
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <h1 class="hero-title">Explore Our Stylish RC Shirts Collection</h1>
+        <p class="hero-subtitle">Your perfect fit is just a click away!</p>
+        <a href="{% url 'app:products' %}" class="btn btn-primary-custom">SHOP NOW</a>
+    </div>
+</section>
+
+<!-- Featured Collections -->
+<div class="container">
+    <h2 class="section-title">Featured Collection</h2>
+    
+    <div class="row">
+        <!-- Collection 1 -->
+        <div class="col-md-6 col-lg-3">
+            <div class="product-card">
+                <img src="{% static 'assets/style tshirts.jpg' %}" alt="Stylish T-Shirt" class="product-img">
+                <div class="product-body">
+                    <h3 class="product-title">Stylish T-Shirt</h3>
+                    <p class="product-description">Made for comfort and style with premium cotton fabric.</p>
+                    <a href="{% url 'app:products' %}" class="btn btn-buy">BUY NOW</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Collection 2 -->
+        <div class="col-md-6 col-lg-3">
+            <div class="product-card">
+                <img src="{% static 'assets/polo shirts.jpg' %}" alt="Trendy Polo Shirt" class="product-img">
+                <div class="product-body">
+                    <h3 class="product-title">Trendy Polo Shirt</h3>
+                    <p class="product-description">Perfect for casual wear with a sophisticated look.</p>
+                    <a href="{% url 'app:products' %}" class="btn btn-buy">BUY NOW</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Collection 3 -->
+        <div class="col-md-6 col-lg-3">
+            <div class="product-card">
+                <img src="{% static 'assets/classic white.jpg' %}" alt="Classic White Shirt" class="product-img">
+                <div class="product-body">
+                    <h3 class="product-title">Classic White Shirt</h3>
+                    <p class="product-description">The ultimate wardrobe essential for every occasion.</p>
+                    <a href="{% url 'app:products' %}" class="btn btn-buy">BUY NOW</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Collection 4 -->
+        <div class="col-md-6 col-lg-3">
+            <div class="product-card">
+                <img src="{% static 'assets/graphic tee.jpg' %}" alt="Graphic Tee" class="product-img">
+                <div class="product-body">
+                    <h3 class="product-title">Graphic Tee</h3>
+                    <p class="product-description">Make a statement with this unique graphic design.</p>
+                    <a href="{% url 'app:products' %}" class="btn btn-buy">BUY NOW</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="feature-box">
+                <div class="feature-icon">
+                    <i class="fas fa-truck"></i>
+                </div>
+                <h3 class="feature-title">Fast Delivery</h3>
+                <p class="feature-text">Get your favorite shirts delivered to your doorstep within 3-5 business days.</p>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="feature-box">
+                <div class="feature-icon">
+                    <i class="fas fa-exchange-alt"></i>
+                </div>
+                <h3 class="feature-title">Easy Returns</h3>
+                <p class="feature-text">Not satisfied? Return within 30 days for a full refund, no questions asked.</p>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="feature-box">
+                <div class="feature-icon">
+                    <i class="fas fa-tshirt"></i>
+                </div>
+                <h3 class="feature-title">Premium Quality</h3>
+                <p class="feature-text">All our shirts are made from high-quality materials for maximum comfort.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Call to Action -->
+<div class="container my-5 text-center">
+    <h2 class="in">Ready to Upgrade Your Wardrobe?</h2>
+    <a href="{% url 'app:products' %}" class="btn btn-primary-custom btn-lg">EXPLORE ALL COLLECTIONS</a>
+</div>
+{% endblock %}

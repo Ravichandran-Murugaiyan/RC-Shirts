@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+{% block title %}{{ shirt.model_name }} | {{ shirt.brand }} | YourStore{% endblock %}
+{% block meta_description %}{{ meta_description }}{% endblock %}
+
+{% block content %}
+<div class="shirt-detail-container">
+    <!-- Product Gallery -->
+    <div class="product-gallery">
+        <div class="main-image">
+            <img src="{{ shirt.image.url }}" alt="{{ shirt.model_name }}" id="zoom-image" data-zoom-image="{{ shirt.image.url }}">
+        </div>
+        <div class="thumbnail-gallery">
+            {% for image in shirt.images.all %}
+            <img src="{{ image.image.url }}" alt="{{ shirt.model_name }} - View {{ forloop.counter }}" class="thumbnail">
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Product Info -->
+    <div class="product-info">
+        <h1>{{ shirt.model_name }}</h1>
+        <div class="brand-category">
+            <span class="brand">By {{ shirt.brand }}</span>
+            <span class="category">{{ shirt.get_category_display }}</span>
+        </div>
+        
+        <!-- Rating -->
+        <div class="rating">
+            <div class="stars">
+                ★★★★★ <span class="rating-count">(142 reviews)</span>
+            </div>
+            <a href="#reviews" class="review-link">Read Reviews</a>
+        </div>
+        
+        <!-- Price -->
+        <div class="price-section">
+            <span class="current-price">₹{{ shirt.price }}</span>
+            {% if shirt.original_price %}
+            <span class="original-price">₹{{ shirt.original_price }}</span>
+            <span class="discount">({{ shirt.discount_percentage }}% OFF)</span>
+            {% endif %}
+            <div class="tax-info">Inclusive of all taxes</div>
+        </div>
+        
+        <!-- Color Options -->
+        <div class="color-options">
+            <h3>Color:</h3>
+            <div class="colors">
+                {% for color in shirt.available_colors.all %}
+                <div class="color-circle" style="background-color: {{ color.hex_code }};" title="{{ color.name }}"></div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Size Selector -->
+        <div class="size-selector">
+            <h3>Size: <a href="#size-guide" class="size-guide-link">Size Guide</a></h3>
+            <div class="sizes">
+                {% for size in shirt.available_sizes.all %}
+                <div class="size-option">{{ size.name }}</div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Add to Cart -->
+        <div class="action-buttons">
+            <button class="add-to-cart" data-shirt-id="{{ shirt.id }}">
+                <i class="fas fa-shopping-cart"></i> ADD TO CART
+            </button>
+            <button class="wishlist">
+                <i class="far fa-heart"></i> WISHLIST
+            </button>
+        </div>
+        
+        <!-- Delivery Info -->
+        <div class="delivery-info">
+            <div class="delivery-option">
+                <i class="fas fa-truck"></i>
+                <div>
+                    <strong>Delivery</strong>
+                    <p>Standard: 3-5 business days | Express: 1-2 business days</p>
+                </div>
+            </div>
+            <div class="delivery-option">
+                <i class="fas fa-undo"></i>
+                <div>
+                    <strong>Returns</strong>
+                    <p>Easy 15-day returns | Free pickup</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Product Details Tabs -->
+<div class="product-tabs">
+    <ul class="tabs">
+        <li class="active" data-tab="description">Description</li>
+        <li data-tab="specifications">Specifications</li>
+        <li data-tab="reviews">Reviews (142)</li>
+        <li data-tab="shipping">Shipping & Returns</li>
+    </ul>
+    
+    <div class="tab-content">
+        <div id="description" class="tab-pane active">
+            <h2>Product Description</h2>
+            <p>{{ shirt.description }}</p>
+            
+            <h3>Key Features</h3>
+            <ul class="features">
+                <li><i class="fas fa-check"></i> Premium {{ shirt.fabric }} fabric</li>
+                <li><i class="fas fa-check"></i> {{ shirt.get_fit_display }} fit</li>
+                <li><i class="fas fa-check"></i> Machine washable</li>
+                <li><i class="fas fa-check"></i> Wrinkle-resistant</li>
+                <li><i class="fas fa-check"></i> Imported quality</li>
+            </ul>
+        </div>
+        
+        <div id="specifications" class="tab-pane">
+            <h2>Product Specifications</h2>
+            <table class="specs-table">
+                <tr>
+                    <th>Brand</th>
+                    <td>{{ shirt.brand }}</td>
+                </tr>
+                <tr>
+                    <th>Model Name</th>
+                    <td>{{ shirt.model_name }}</td>
+                </tr>
+                <tr>
+                    <th>Fabric</th>
+                    <td>{{ shirt.fabric }}</td>
+                </tr>
+                <tr>
+                    <th>Fit</th>
+                    <td>{{ shirt.get_fit_display }}</td>
+                </tr>
+                <tr>
+                    <th>Pattern</th>
+                    <td>{{ shirt.pattern|default:"Solid" }}</td>
+                </tr>
+                <tr>
+                    <th>Sleeve Length</th>
+                    <td>{{ shirt.sleeve_length }}</td>
+                </tr>
+                <tr>
+                    <th>Care Instructions</th>
+                    <td>Machine wash cold, gentle cycle</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div id="reviews" class="tab-pane">
+            <h2>Customer Reviews</h2>
+            <div class="review-summary">
+                <div class="overall-rating">
+                    <div class="average">4.8</div>
+                    <div class="stars">★★★★★</div>
+                    <div class="count">142 reviews</div>
+                </div>
+                <div class="rating-bars">
+                    <!-- Rating distribution bars would go here -->
+                </div>
+            </div>
+            
+            <div class="review-form">
+                <h3>Write a Review</h3>
+                <form>
+                    <!-- Review form elements -->
+                </form>
+            </div>
+            
+            <div class="review-list">
+                <!-- Sample review -->
+                <div class="review">
+                    <div class="review-header">
+                        <div class="reviewer">Rahul S.</div>
+                        <div class="review-date">15 May 2023</div>
+                        <div class="review-rating">★★★★★</div>
+                    </div>
+                    <div class="review-title">Perfect fit and quality</div>
+                    <div class="review-body">
+                        <p>The fabric quality is excellent and the fit is just right. I usually wear size L and this fits perfectly as expected.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Related Products -->
+<div class="related-products">
+    <h2>You May Also Like</h2>
+    <div class="related-grid">
+        {% for shirt in related_shirts %}
+        <div class="related-item">
+            <img src="{{ shirt.image.url }}" alt="{{ shirt.model_name }}">
+            <h3>{{ shirt.model_name }}</h3>
+            <div class="price">₹{{ shirt.price }}</div>
+            <a href="{% url 'app:shirt_detail' shirt.slug %}" class="view-btn">View Details</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Recently Viewed -->
+<div class="recently-viewed">
+    <h2>Recently Viewed</h2>
+    <!-- Would be populated via JavaScript from browsing history -->
+</div>
+
+<style>
+    /* CSS styles for all the elements would go here */
+    /* Including responsive design for mobile/tablet */
+</style>
+
+<script>
+    // JavaScript for:
+    // - Image zoom functionality
+    // - Tab switching
+    // - Size/color selection
+    // - Add to cart functionality
+    // - Review submission
+</script>
+{% endblock %}

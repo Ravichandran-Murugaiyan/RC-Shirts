@@ -1,0 +1,233 @@
+{% extends "app/base.html" %}
+
+{% block title %}RC Stores - Products{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<div id="toast"></div>
+
+<div class="container my-4">
+  <div class="row g-4">
+    {% for shirt in shirts %}
+    <div class="col-12 col-sm-6 col-md-4">
+      <div class="product-card h-100">
+        <div class="product-image-container">
+          <img src="{{ shirt.image.url }}" alt="{{ shirt.model_name }}">
+        </div>
+        <h3 class="product-title">{{ shirt.model_name }}</h3>
+        <p class="product-category">{{ shirt.get_category_display }}</p>
+        <p class="product-price">₹{{ shirt.price }}</p>
+
+        <div class="button-group">
+          <a class="view-btn" href="{% url 'app:details' shirt.id %}">
+            <i class="fas fa-eye"></i> View Details
+          </a>
+          <button class="cart-btn" onclick="addToCart('{{ shirt.id }}', '{{ shirt.model_name }}', {{ shirt.price }}, '{{ shirt.image.url }}')">
+            <i class="fas fa-cart-plus"></i> Add to Cart
+          </button>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="text-center py-5">
+      <i class="fas fa-search fa-2x mb-3 text-muted"></i>
+      <h3>No products available</h3>
+      <p class="text-muted">Please check back later</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if shirts.paginator.num_pages > 1 %}
+  <div class="pagination-container text-center mt-4">
+    <div class="pagination d-inline-flex flex-wrap gap-2">
+      {% if shirts.has_previous %}
+        <a href="?page=1" class="page-link">&laquo; First</a>
+        <a href="?page={{ shirts.previous_page_number }}" class="page-link">&lt; Prev</a>
+      {% endif %}
+
+      {% for num in shirts.paginator.page_range %}
+        {% if num == shirts.number %}
+          <span class="page-link current">{{ num }}</span>
+        {% elif num > shirts.number|add:'-3' and num < shirts.number|add:'3' %}
+          <a href="?page={{ num }}" class="page-link">{{ num }}</a>
+        {% endif %}
+      {% endfor %}
+
+      {% if shirts.has_next %}
+        <a href="?page={{ shirts.next_page_number }}" class="page-link">Next &gt;</a>
+        <a href="?page={{ shirts.paginator.num_pages }}" class="page-link">Last &raquo;</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<style>
+  .product-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .product-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+  }
+
+  .product-image-container {
+    height: 200px;
+    background: #f9f9f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    border-radius: 8px;
+  }
+
+  .product-image-container img {
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+  }
+
+  .product-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 6px;
+    color: #333;
+  }
+
+  .product-category {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 8px;
+  }
+
+  .product-price {
+    font-size: 15px;
+    color: #222;
+    margin-bottom: 12px;
+  }
+
+  .button-group {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .view-btn, .cart-btn {
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background 0.3s ease;
+    font-weight: 500;
+  }
+
+  .view-btn {
+    background: #007bff;
+    color: white;
+    text-decoration: none;
+  }
+
+  .view-btn:hover {
+    background: #0056b3;
+  }
+
+  .cart-btn {
+    background: #ffc107;
+    color: black;
+    border: none;
+    cursor: pointer;
+  }
+
+  .cart-btn:hover {
+    background: #e0a800;
+  }
+
+  .pagination .page-link {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    color: #007bff;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .pagination .page-link:hover {
+    background: #f2f2f2;
+  }
+
+  .pagination .current {
+    background: #007bff;
+    color: white;
+    font-weight: bold;
+  }
+
+  #toast {
+    display: none;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #28a745;
+    color: white;
+    padding: 12px 18px;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+  }
+
+  @media (max-width: 576px) {
+    .product-image-container {
+      height: 160px;
+    }
+  }
+</style>
+
+<script>
+  function addToCart(id, name, price, image) {
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+    const existingItem = cart.find(item => item.id === id);
+
+    if (existingItem) {
+      existingItem.quantity += 1;
+      existingItem.total = existingItem.quantity * existingItem.price;
+    } else {
+      cart.push({
+        id: id,
+        name: name,
+        price: price,
+        image: image,
+        quantity: 1,
+        total: price
+      });
+    }
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+    showToast(`${name} added to cart!`, 'success');
+    updateCartCount?.();
+  }
+
+  function showToast(message, type) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.style.backgroundColor = type === 'error' ? '#dc3545' : '#28a745';
+    toast.style.display = 'block';
+    setTimeout(() => {
+      toast.style.display = 'none';
+    }, 2000);
+  }
+</script>
+
+{% endblock %}
